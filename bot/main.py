@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 flask_app = Flask(__name__)
 @flask_app.route('/')
 def home():
-    return "🔥 ZEVRIC - BLUE AUTO START - NO GREY KEYBOARD ✅"
+    return "🔥 ZEVRIC - FANCY MAST TEXT STYLE - FINAL ✅"
 def run_flask():
     port = int(os.getenv('PORT', 10000))
     flask_app.run(host='0.0.0.0', port=port)
@@ -30,7 +30,7 @@ def save_users(d):
 def get_user(uid):
     users = load_users()
     if str(uid) not in users:
-        users[str(uid)] = {"balance":0.0,"credits":0,"referrals":0,"ref_code":str(uid)[-6:],"awaiting_screenshot":None,"awaiting_utr":False,"selected_package":None}
+        users[str(uid)] = {"balance":0.0,"credits":0,"referrals":0,"ref_code":str(uid)[-6:],"awaiting_screenshot":None,"awaiting_utr":False,"selected_package":None,"history":[]}
         save_users(users)
     return users[str(uid)]
 
@@ -67,43 +67,50 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if v.get("ref_code")==context.args[0] and k!=str(uid):
                 users[k]["balance"]+=0.1
                 users[k]["referrals"]+=1
+                if "history" not in users[k]:
+                    users[k]["history"]=[]
+                users[k]["history"].append(f"Referral bonus +₹0.1 from {name}")
                 save_users(users)
                 break
     user = get_user(uid)
     me = await context.bot.get_me()
     ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
+    # FANCY MAST TEXT STYLE - Jo dekh ke kharidne ka man kare
     text = f"""✨ ━━━━━━━━━━━━━━━━ ✨
   🎮 𝐙𝐄𝐕𝐑𝐈𝐂 𝐆𝐔𝐈𝐋𝐃 𝐆𝐋𝐎𝐑𝐘 𝐁𝐎𝐓 🎮
 ✨ ━━━━━━━━━━━━━━━━ ✨
 
-👋 𝐇𝐞𝐲, {name}! 😎
-🌟 Welcome to Zevric Store 💖
+👋 𝐇𝐞𝐲, {name}! 😎💫
+🌟 𝒲𝑒𝓁𝒸𝑜𝓂𝑒 𝓉𝑜 𝒵𝑒𝓋𝓇𝒾𝒸 𝒮𝓉𝑜𝓇𝑒 💖
 
 ┏━ 𝐆𝐔𝐈𝐋𝐃 𝐆𝐋𝐎𝐑𝐘 𝐁𝐎𝐓 ━┓
 🏆 Guild Glory Boost 🔥
 ⚡ 100% Working | 24/7 🚀
-💎 Fast & Secure 💖
+💎 Fast & Secure 💫
+🎯 Trusted by 1000+ Guilds 🙋
 ┗━━━━━━━━━━━━┛
 
-┏━ YOUR WALLET ━┓
-💰 Balance: ₹{user['balance']:.2f} 💵
-🎫 Credits: {user.get('credits',0)} 🪙
-💸 Earn ₹0.10 per Refer 🤑
+┏━ 𝙔𝙊𝙐𝙍 𝙒𝘼𝙇𝙇𝙀𝙏 ━┓
+💰 ₹{user['balance']:.2f} 💵
+🎫 {user.get('credits',0)} Credits 🪙
+💸 𝑬𝒂𝒓𝒏 ₹0.10 𝑝𝑒𝓇 𝑅𝑒𝒻𝑒𝓇 🤑
 ┗━━━━━━━━━━━━┛
 
-🔗 Your Link 👇
+🔗 𝒀𝒐𝒖𝒓 𝑹𝒆𝒇𝒆𝒓𝒓𝒂𝒍 𝑳𝒊𝒏𝒌 👇
 {ref_link}
 
-💡 Bot Kharido Aur Glory Badhao! 🚀🏆
+💡 𝐁𝐨𝐭 𝐊𝐡𝐚𝐫𝐢𝐝𝐨 𝐀𝐮𝐫 𝐆𝐮𝐢𝐥𝐝 𝐆𝐥𝐨𝐫𝐲 𝐁𝐚𝐝𝐡𝐚𝐨! 🚀🏆
 🎯 @{SUPPORT} 💬
+✨ ━━━━━━━━━━━━━━━━ ✨
 """
     kb = [
         [InlineKeyboardButton("💳 𝐀𝐝𝐝 𝐁𝐚𝐥𝐚𝐧𝐜𝐞 💰", callback_data="add_balance"),
          InlineKeyboardButton("🎫 𝐁𝐮𝐲 𝐂𝐫𝐞𝐝𝐢𝐭𝐬 🏆", callback_data="buy_credits")],
-        [InlineKeyboardButton("👥 𝐑𝐞𝐟𝐞𝐫𝐫𝐚𝐥𝐬 🙋", callback_data="refs"),
-         InlineKeyboardButton("📊 𝐒𝐭𝐚𝐭𝐬 ✨", callback_data="stats")],
-        [InlineKeyboardButton("📋 𝐂𝐫𝐞𝐝𝐢𝐭 𝐏𝐥𝐚𝐧𝐬 💎", callback_data="credit_plans"),
-         InlineKeyboardButton("🆘 𝐒𝐮𝐩𝐩𝐨𝐫𝐭 💬", url=f"https://t.me/{SUPPORT}")],
+        [InlineKeyboardButton("👥 𝐌𝐲 𝐑𝐞𝐟𝐞𝐫𝐫𝐚𝐥𝐬 🙋", callback_data="refs"),
+         InlineKeyboardButton("📊 𝐌𝐲 𝐒𝐭𝐚𝐭𝐬 ✨", callback_data="stats")],
+        [InlineKeyboardButton("🕐 𝐇𝐢𝐬𝐭𝐨𝐫𝐲 📜", callback_data="history"),
+         InlineKeyboardButton("📋 𝐂𝐫𝐞𝐝𝐢𝐭 𝐏𝐥𝐚𝐧𝐬 💎", callback_data="credit_plans")],
+        [InlineKeyboardButton("🆘 𝐂𝐨𝐧𝐭𝐚𝐜𝐭 𝐀𝐝𝐦𝐢𝐧 💬", url=f"https://t.me/{SUPPORT}")]
     ]
     await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(kb))
 
@@ -114,39 +121,44 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name = q.from_user.first_name
     users = load_users()
     user = get_user(uid)
+    me = await context.bot.get_me()
+    ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
 
     if q.data=="add_balance":
         text = f"""💳 𝐙𝐄𝐕𝐑𝐈𝐂 𝐏𝐀𝐘𝐌𝐄𝐍𝐓 💳
 ━━━━━━━━━━━━━━
-💎 Method Choose Karo 👇
-💜 UPI - GPay/PhonePe
-💛 USDT - TRON TRC20
+💎 𝐌𝐞𝐭𝐡𝐨𝐝 𝐂𝐡𝐨𝐨𝐬𝐞 𝐊𝐚𝐫𝐨 👇
+💜 UPI - GPay/PhonePe/Paytm
+💛 USDT - TRON TRC20 Only
 ━━━━━━━━━━━━━━
 """
         kb = [[InlineKeyboardButton("💜 𝐔𝐏𝐈 💳", callback_data="pay_upi"),
                InlineKeyboardButton("💛 𝐔𝐒𝐃𝐓 🌐", callback_data="pay_usdt")],
               [InlineKeyboardButton("🎫 𝐁𝐮𝐲 𝐂𝐫𝐞𝐝𝐢𝐭𝐬 🏆", callback_data="buy_credits"),
-               InlineKeyboardButton("🔙 Back 🏠", callback_data="back_home")]]
+               InlineKeyboardButton("🔙 𝐁𝐚𝐜𝐤 🏠", callback_data="back_home")]]
         await q.message.reply_text(text, reply_markup=InlineKeyboardMarkup(kb))
 
     elif q.data=="buy_credits" or q.data=="credit_plans":
         bal = user['balance']
-        text = f"""🎫 𝐁𝐮𝐲 𝐂𝐫𝐞𝐝𝐢𝐭𝐬 🎫
-━━━━━━━━━━━━━━━━━
-💰 Your Balance: ₹{bal:.2f} 💵
-💎 Default: 1 Credit = ₹{CREDIT_PRICE_INR} 🪙
+        text = f"""✨ ━━━━━━━━━━━━━━━━ ✨
+  🎫 𝐁𝐔𝐘 𝐂𝐑𝐄𝐃𝐈𝐓𝐒 🎫
+✨ ━━━━━━━━━━━━━━━━ ✨
+
+💰 𝒀𝒐𝒖𝒓 𝑩𝒂𝒍𝒂𝒏𝒄𝒆: ₹{bal:.2f} 💵
+💎 𝐃𝐞𝐟𝐚𝐮𝐥𝐭: 1 Credit = ₹{CREDIT_PRICE_INR} 🪙
 💱 1 USDT ≈ ₹{USDT_RATE} 💹
 
-📦 Select a credit package: 👇
+━━━━━━━━━━━━━━━━━
+📦 𝐒𝐞𝐥𝐞𝐜𝐭 𝐏𝐚𝐜𝐤𝐚𝐠𝐞 👇
 ━━━━━━━━━━━━━━━━━
 """
         kb = []
         for i in range(1,7):
             inr_price = i * CREDIT_PRICE_INR
             usdt_price = calc_usdt(inr_price)
-            kb.append([InlineKeyboardButton(f"{i} Credits — ₹{inr_price} (~{usdt_price} USDT)", callback_data=f"pkg_{i}")])
-        kb.append([InlineKeyboardButton("💳 Add Balance 💰", callback_data="add_balance"),
-                   InlineKeyboardButton("🔙 Back 🏠", callback_data="back_home")])
+            kb.append([InlineKeyboardButton(f"💎 {i} Credits — ₹{inr_price} (~{usdt_price} USDT) 🔥", callback_data=f"pkg_{i}")])
+        kb.append([InlineKeyboardButton("💳 𝐀𝐝𝐝 𝐁𝐚𝐥𝐚𝐧𝐜𝐞 💰", callback_data="add_balance"),
+                   InlineKeyboardButton("🔙 𝐁𝐚𝐜𝐤 🏠", callback_data="back_home")])
         await q.message.reply_text(text, reply_markup=InlineKeyboardMarkup(kb))
 
     elif q.data.startswith("pkg_"):
@@ -159,21 +171,33 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if user['balance'] >= inr_price:
                 users[str(uid)]['balance'] -= inr_price
                 users[str(uid)]['credits'] = users[str(uid)].get('credits',0) + pkg
+                if "history" not in users[str(uid)]:
+                    users[str(uid)]["history"]=[]
+                users[str(uid)]["history"].append(f"Bought {pkg} Credits -₹{inr_price} ({usdt_price} USDT)")
                 save_users(users)
-                await q.message.reply_text(f"✅ Purchased {pkg} Credits! 🎫\n💰 Deducted: ₹{inr_price}\n🪙 Total Credits: {users[str(uid)]['credits']}\n🏆 @{SUPPORT} 💬")
+                await q.message.reply_text(f"""✨ ━━━━━━━━━━━━━━━━ ✨
+✅ 𝐏𝐮𝐫𝐜𝐡𝐚𝐬𝐞𝐝 {pkg} Credits! 🎫
+✨ ━━━━━━━━━━━━━━━━ ✨
+💰 Deducted: ₹{inr_price} (~{usdt_price} USDT)
+🪙 Total Credits: {users[str(uid)]['credits']}
+🏆 Glory Boost Ready! 🚀
+
+🎯 @{SUPPORT} 💬
+""")
             else:
                 need = inr_price - user['balance']
-                text = f"""❌ Insufficient Balance 😥
+                text = f"""❌ 𝐈𝐧𝐬𝐮𝐟𝐟𝐢𝐜𝐢𝐞𝐧𝐭 𝐁𝐚𝐥𝐚𝐧𝐜𝐞 😥
 ━━━━━━━━━━━━━━
-📦 Package: {pkg} Credits
+📦 Package: {pkg} Credits 🪙
 💰 Price: ₹{inr_price} (~{usdt_price} USDT)
 💵 Your Balance: ₹{user['balance']:.2f}
 💸 Need: ₹{need:.2f} more
-👇 Add Balance karo 👇
+
+👇 𝐀𝐝𝐝 𝐁𝐚𝐥𝐚𝐧𝐜𝐞 𝐊𝐚𝐫𝐨 👇
 """
                 kb = [[InlineKeyboardButton(f"💜 Pay ₹{inr_price} UPI 💳", callback_data="pay_upi"),
                        InlineKeyboardButton(f"💛 Pay {usdt_price} USDT 🌐", callback_data="pay_usdt")],
-                      [InlineKeyboardButton("🔙 Back 🏠", callback_data="buy_credits")]]
+                      [InlineKeyboardButton("🔙 𝐁𝐚𝐜𝐤 🏠", callback_data="buy_credits")]]
                 await q.message.reply_text(text, reply_markup=InlineKeyboardMarkup(kb))
                 users[str(uid)]['selected_package'] = pkg
                 save_users(users)
@@ -247,6 +271,43 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             save_users(users)
         await q.message.reply_text("❌ Payment Cancelled\n/start se restart karo 🏠")
 
+    elif q.data=="refs":
+        text = f"""✨ ━━━━━━━━━━━━━━━━ ✨
+  👥 𝐌𝐘 𝐑𝐄𝐅𝐄𝐑𝐑𝐀𝐋𝐒 🙋
+✨ ━━━━━━━━━━━━━━━━ ✨
+
+👥 Total: {user['referrals']} 🙋
+💰 Earned: ₹{user['referrals']*0.1:.2f} 💸
+
+🔗 𝒀𝒐𝒖𝒓 𝑳𝒊𝒏𝒌 👇
+{ref_link}
+
+💡 𝑺𝒉𝒂𝒓𝒆 𝑲𝒂𝒓𝒐 𝑨𝒖𝒓 𝑲𝒂𝒎𝒂𝒐! 🚀
+"""
+        await q.message.reply_text(text)
+
+    elif q.data=="stats":
+        text = f"""✨ ━━━━━━━━━━━━━━━━ ✨
+  📊 𝐌𝐘 𝐒𝐓𝐀𝐓𝐒 ✨
+✨ ━━━━━━━━━━━━━━━━ ✨
+
+👤 Name: {name} 😎
+💰 Balance: ₹{user['balance']:.2f} 💵
+🎫 Credits: {user.get('credits',0)} 🪙
+👥 Referrals: {user['referrals']} 🙋
+💸 Referral Earn: ₹{user['referrals']*0.1:.2f} 💰
+"""
+        await q.message.reply_text(text)
+
+    elif q.data=="history":
+        hist = user.get('history',[])
+        if not hist:
+            text = "🕐 𝐇𝐢𝐬𝐭𝐨𝐫𝐲\n━━━━━━━━━━━━━━\nNo history yet! 😅"
+        else:
+            htxt = "\n".join([f"{i+1}. {h}" for i,h in enumerate(hist[-10:])])
+            text = f"🕐 𝐇𝐢𝐬𝐭𝐨𝐫𝐲 (Last 10)\n━━━━━━━━━━━━━━\n{htxt}"
+        await q.message.reply_text(text)
+
     elif q.data.startswith("approve_"):
         pid = q.data.replace("approve_","")
         pending = load_pending()
@@ -256,12 +317,15 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             users = load_users()
             if str(user_id) in users:
                 users[str(user_id)]["balance"] += float(amount)
+                if "history" not in users[str(user_id)]:
+                    users[str(user_id)]["history"]=[]
+                users[str(user_id)]["history"].append(f"Balance Added +₹{amount} via {pending[pid]['method']}")
                 save_users(users)
             pending[pid]["status"]="approved"
             save_pending(pending)
             await q.message.reply_text(f"✅ Approved {pid} +₹{amount}")
             try:
-                await context.bot.send_message(user_id, f"✅ Payment Approved! ₹{amount} Added 💰\n🎫 Buy Credits ab kar sakte ho 🏆")
+                await context.bot.send_message(user_id, f"✅ Payment Submitted!\n\nAmount: ₹{amount}\nUTR: {pending[pid].get('utr','')}\n\n✅ Approved! Balance Added\n💰 Balance: ₹{users[str(user_id)]['balance']:.2f}")
             except: pass
     elif q.data.startswith("cancel_"):
         pid = q.data.replace("cancel_","")
@@ -276,12 +340,6 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             except: pass
     elif q.data=="back_home":
         await start(q, context)
-    elif q.data=="refs":
-        me = await context.bot.get_me()
-        ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
-        await q.message.reply_text(f"👥 Refs: {user['referrals']} | ₹{user['referrals']*0.1:.2f}\n🔗 {ref_link}")
-    elif q.data=="stats":
-        await q.message.reply_text(f"📊 {name} | Balance: ₹{user['balance']:.2f} | Credits: {user.get('credits',0)}")
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
@@ -298,7 +356,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_pending(pending)
         users[str(uid)]["awaiting_screenshot"] = None
         save_users(users)
-        await update.message.reply_text(f"✅ Payment Screenshot Received! 🧾\n💰 Method: {awaiting}\n💵 Amount: ₹{amt}\n\n📲 Ab UTR / Transaction ID bhejo 👇")
+        await update.message.reply_text(f"✅ Screenshot Received!\n💰 Method: {awaiting}\n💵 Amount: ₹{amt} (~{calc_usdt(amt)} USDT)\n\n📲 Ab UTR / Transaction ID bhejo 👇")
         for admin_id in get_admins():
             try:
                 kb = [[InlineKeyboardButton(f"✅ Approve +₹{amt}", callback_data=f"approve_{pid}"),
@@ -315,25 +373,33 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if users.get(str(uid),{}).get('awaiting_utr'):
         utr = ''.join(filter(str.isalnum, text))
         if len(utr) >= 8:
-            await update.message.reply_text(f"✅ Payment Submitted!\n\nAmount: ₹{users.get(str(uid),{}).get('selected_package',1)*CREDIT_PRICE_INR if users.get(str(uid),{}).get('selected_package') else '95'}\nUTR: {utr}\n\n⏳ Awaiting admin verification. You'll be notified once approved.")
+            pending = load_pending()
+            latest_pid = None
+            for pid, data in pending.items():
+                if str(data.get('user_id'))==str(uid) and data.get('status')=='pending':
+                    latest_pid = pid
+            if latest_pid:
+                pending[latest_pid]['utr']=utr
+                save_pending(pending)
+            await update.message.reply_text(f"✅ Payment Submitted!\n\nAmount: ₹{users.get(str(uid),{}).get('selected_package',1)*CREDIT_PRICE_INR if users.get(str(uid),{}).get('selected_package') else CREDIT_PRICE_INR}\nUTR: {utr}\n\n⏳ Awaiting admin verification. You'll be notified once approved.")
             users[str(uid)]['awaiting_utr'] = False
             users[str(uid)]['last_utr'] = utr
             save_users(users)
             for admin_id in get_admins():
                 try:
-                    await context.bot.send_message(admin_id, f"📲 UTR Received\n👤 {update.effective_user.first_name} @{update.effective_user.username}\n🆔 {uid}\nUTR: {utr}")
+                    await context.bot.send_message(admin_id, f"📲 UTR Received\n👤 {update.effective_user.first_name} @{update.effective_user.username}\n🆔 {uid}\nUTR: {utr}\nPID: {latest_pid}")
                 except: pass
             return
         else:
             await update.message.reply_text("❌ Valid UTR bhejo 👇")
             return
     if users.get(str(uid), {}).get("awaiting_screenshot"):
-        await update.message.reply_text("📸 Photo bhejo! UTR baad me 👆")
+        await update.message.reply_text("📸 Photo bhejo! UTR baad me")
     else:
-        await update.message.reply_text("👋 /start dabao 🏠")
+        await update.message.reply_text("👋 /start dabao")
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"🆘 @{SUPPORT}")
+    await update.message.reply_text(f"🆘 Contact: @{SUPPORT}")
 
 async def main():
     while True:
@@ -351,7 +417,7 @@ async def main():
             await app.initialize()
             await app.start()
             await app.updater.start_polling()
-            print("✅ BOT LIVE - BLUE AUTO START - NO GREY KEYBOARD")
+            print("✅ BOT LIVE - FANCY MAST TEXT STYLE - ALL COMMANDS NO FF LIKES")
             await asyncio.Event().wait()
         except Exception as e:
             print(e)
