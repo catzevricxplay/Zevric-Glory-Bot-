@@ -4,7 +4,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQuer
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 ADMIN_IDS = os.getenv("ADMIN_IDS", "")
-SUPPORT = "just_zevric" # bina @ ke
+SUPPORT = "just_zevric"
 UPI_ID = "zervicxplay@okhdfcbank"
 USDT_ADDR = "TLwAWcJ7Tm34jqyYqV6qhizQHy8pe7US1v"
 
@@ -29,8 +29,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     name = update.effective_user.first_name
     users = load_users()
-
-    # referral check
     if context.args:
         for k,v in users.items():
             if v.get("ref_code")==context.args[0] and k!=str(uid):
@@ -38,13 +36,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 users[k]["referrals"]+=1
                 save_users(users)
                 break
-
     user = get_user(uid)
     me = await context.bot.get_me()
     ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
-
-    text = f"""
-╔════════════════════╗
+    text = f"""╔════════════════════╗
    ZEVRIC GLORY STORE
 ╚════════════════════╝
 
@@ -57,7 +52,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 💡 Earn ₹0.1 per referral!
 Support: @{SUPPORT}
 """
-
     kb = [
         [InlineKeyboardButton("➕ Add Balance", callback_data="add_balance"),
          InlineKeyboardButton("🎫 Buy Credits", callback_data="buy")],
@@ -74,31 +68,32 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_user(q.from_user.id)
 
     if q.data=="add_balance":
-        caption = f"""
-💳 *ZEVRIC PAYMENT - Add Balance*
+        caption = f"""💳 *ZEVRIC PAYMENT - Add Balance*
 
-*1. UPI PAYMENT:*
+*1. UPI PAYMENT (Real QR):*
 ID: `{UPI_ID}`
 QR niche hai - scan karo
 
 *2. USDT TRON (TRC20):*
 Addr: `{USDT_ADDR}`
 Network: TRON only
+QR niche hai
 
-Payment karke screenshot @{SUPPORT} pe bhejo, 2-5 min me balance add ho jayega.
+Payment karke screenshot @{SUPPORT} pe bhejo.
 """
-        # pehle text
         await q.message.reply_text(caption, parse_mode="Markdown")
-        # ab QR bhejna - tumhe ye 2 image repo me daalni hai bot/upi_qr.jpg aur bot/usdt_qr.jpg
+        # Real QR bhejo
         try:
-            await context.bot.send_photo(q.message.chat_id, photo=open("bot/upi_qr.jpg","rb"), caption=f"UPI QR - {UPI_ID}")
-        except: pass
+            await context.bot.send_photo(chat_id=q.message.chat_id, photo=open("bot/upi_qr.jpg","rb"), caption=f"UPI QR - Scan to Pay - {UPI_ID}")
+        except Exception as e:
+            print(f"UPI QR error: {e}")
         try:
-            await context.bot.send_photo(q.message.chat_id, photo=open("bot/usdt_qr.jpg","rb"), caption=f"USDT TRON - {USDT_ADDR}")
-        except: pass
+            await context.bot.send_photo(chat_id=q.message.chat_id, photo=open("bot/usdt_qr.jpg","rb"), caption=f"USDT TRON QR - {USDT_ADDR}")
+        except Exception as e:
+            print(f"USDT QR error: {e}")
 
     elif q.data=="buy":
-        await q.message.reply_text("Buy karne ke liye /help likho aur Support pe aao.")
+        await q.message.reply_text("Buy karne ke liye Support pe aao.")
     elif q.data=="refs":
         await q.message.reply_text(f"Referrals: {user['referrals']} | Earning: ₹{user['referrals']*0.1:.2f}")
     elif q.data=="stats":
@@ -107,7 +102,7 @@ Payment karke screenshot @{SUPPORT} pe bhejo, 2-5 min me balance add ho jayega.
         await q.message.reply_text("Free Fire Likes ke liye UID bhejo, Support handle karega.")
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"ZEVRIC SUPPORT\nContact: @{SUPPORT}\nUPI: {UPI_ID}\nUSDT: {USDT_ADDR}\n\nPayment issue ho to direct message karo.")
+    await update.message.reply_text(f"ZEVRIC SUPPORT\nContact: @{SUPPORT}\nUPI: {UPI_ID}\nUSDT: {USDT_ADDR}")
 
 async def main():
     app = Application.builder().token(TOKEN).build()
@@ -115,7 +110,7 @@ async def main():
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("support", help_cmd))
     app.add_handler(CallbackQueryHandler(btn_handler))
-    print("Zevric Bot starting...")
+    print("Zevric Bot starting with Real QR...")
     await app.initialize()
     await app.start()
     await app.updater.start_polling()
