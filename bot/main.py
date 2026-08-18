@@ -4,33 +4,26 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
-ADMIN_IDS = os.getenv("ADMIN_IDS", "")
 SUPPORT = "just_zevric"
 UPI_ID = "zervicxplay@okhdfcbank"
 USDT_ADDR = "TLwAWcJ7Tm34jqyYqV6qhizQHy8pe7US1v"
 
 logging.basicConfig(level=logging.INFO)
-
-# --- 24/7 KEEP ALIVE ---
 flask_app = Flask(__name__)
 @flask_app.route('/')
 def home():
     return "✨ ZEVRIC BOT LIVE 24/7 🔥✅"
-
 def run_flask():
     port = int(os.getenv('PORT', 10000))
     flask_app.run(host='0.0.0.0', port=port)
-
 threading.Thread(target=run_flask, daemon=True).start()
 
 def load_users():
     try:
         with open("users.json","r") as f: return json.load(f)
     except: return {}
-
 def save_users(d):
     with open("users.json","w") as f: json.dump(d,f)
-
 def get_user(uid):
     users = load_users()
     if str(uid) not in users:
@@ -95,19 +88,32 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
 
     if q.data=="add_balance":
-        caption = f"""💳✨ ZEVRIC PAYMENT ✨💳
+        try:
+            upi_path = find_qr("upi_qr")
+            usdt_path = find_qr("usdt_qr")
+            
+            # QR UPERR - pehle QR bhejo, niche nahi!
+            if upi_path:
+                try:
+                    await context.bot.send_photo(q.message.chat_id, photo=open(upi_path,"rb"), caption=f"💜 UPI Payment 💜\n🆔 {UPI_ID} 💳\n😍 Scan karo 💸")
+                except Exception as e:
+                    print(f"UPI error: {e}")
+            if usdt_path:
+                try:
+                    await context.bot.send_photo(q.message.chat_id, photo=open(usdt_path,"rb"), caption=f"💛 USDT TRON 💛\n🔐 {USDT_ADDR} 🌐\n⚡ TRC20 Only")
+                except Exception as e:
+                    print(f"USDT error: {e}")
+            
+            # Fir payment details - QR ka "niche hai" line hata diya
+            caption = f"""💳✨ ZEVRIC PAYMENT ✨💳
 ━━━━━━━━━━━━━━━━━
 
 💜 UPI Payment 💜
-🆔 ID: `{UPI_ID}` 💳
-📸 QR Code niche hai 👇
-😍 Scan karo aur pay karo 💸
+🆔 ID: {UPI_ID} 💳
 
 💛 USDT TRON (TRC20) 💛
-🔐 Address:
-`{USDT_ADDR}`
+🔐 Address: {USDT_ADDR}
 🌐 Network: TRON only ⚡
-📸 QR Code niche hai 👇
 
 📤 Payment karke screenshot 📸
 👉 @{SUPPORT} pe bhejo 📩
@@ -116,118 +122,44 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🚀 Fast Approval 💯
 ━━━━━━━━━━━━━━━━━
 """
-        await q.message.reply_text(caption, parse_mode="Markdown")
-        upi_path = find_qr("upi_qr")
-        usdt_path = find_qr("usdt_qr")
-        if upi_path:
-            try:
-                await context.bot.send_photo(q.message.chat_id, photo=open(upi_path,"rb"), caption=f"💜 UPI QR 💜\n🆔 {UPI_ID} 💳\n👇 Scan karo 😍")
-            except Exception as e:
-                print(f"UPI error {e}")
-        if usdt_path:
-            try:
-                await context.bot.send_photo(q.message.chat_id, photo=open(usdt_path,"rb"), caption=f"💛 USDT QR 💛\n🔐 {USDT_ADDR} 🌐")
-            except Exception as e:
-                print(f"USDT error {e}")
+            await q.message.reply_text(caption)
+                
+        except Exception as e:
+            print(f"Add Balance error: {e}")
+            await q.message.reply_text(f"💳 Payment\nUPI: {UPI_ID}\nUSDT: {USDT_ADDR}\nSupport: @{SUPPORT}")
 
     elif q.data=="buy":
-        await q.message.reply_text(f"""🛒✨ Buy Credits ✨🛒
-━━━━━━━━━━━━━━━━━
-
-💎 Credits kharidne ke liye 👇
-📞 Support pe aao: @{SUPPORT} 💬
-
-⚡ Fast Delivery 🚀
-💯 Trusted 100% 🔥
-💸 Secure Payment 💳
-🕒 24/7 Available ✅
-
-💖 Zevric Family 💫
-━━━━━━━━━━━━━━━━━
-""")
-
+        await q.message.reply_text(f"🛒✨ Buy Credits ✨🛒\n📞 @{SUPPORT} 💬\n⚡ Fast Delivery 🚀")
     elif q.data=="refs":
-        await q.message.reply_text(f"""👥✨ Your Referrals ✨👥
-━━━━━━━━━━━━━━━━━
-
-🙋 Total Referrals: {user['referrals']} 👥
-💰 Earning: ₹{user['referrals']*0.1:.2f} 💵
-💸 Per Refer: ₹0.10 🤑
-
-🔗 Your Link 👇
-{ref_link}
-
-📢 Dosto ko share karo! 🚀
-💸 Aur kamao! 🤑
-━━━━━━━━━━━━━━━━━
-""")
-
+        await q.message.reply_text(f"👥✨ Referrals ✨👥\n🙋 Total: {user['referrals']}\n💰 Earning: ₹{user['referrals']*0.1:.2f}\n🔗 {ref_link}")
     elif q.data=="stats":
-        await q.message.reply_text(f"""📊✨ Your Stats ✨📊
-━━━━━━━━━━━━━━━━━
-
-👤 Name: {name} 😎
-💰 Balance: ₹{user['balance']:.2f} 💵
-👥 Referrals: {user['referrals']} 🙋
-💸 Earned: ₹{user['referrals']*0.1:.2f} 💰
-🔗 Code: {user['ref_code']} 🎫
-
-🔥 Keep Growing! 🚀
-💖 Zevric Family 💫
-━━━━━━━━━━━━━━━━━
-""")
-
+        await q.message.reply_text(f"📊✨ Stats ✨📊\n👤 {name} 😎\n💰 ₹{user['balance']:.2f}\n👥 {user['referrals']} 🙋\n💸 ₹{user['referrals']*0.1:.2f}")
     elif q.data=="likes":
-        await q.message.reply_text(f"""❤️‍🔥✨ Free Fire Likes ✨❤️‍🔥
-━━━━━━━━━━━━━━━━━
-
-🔥 UID bhejo aur likes pao! 😍
-⚡ 100% Working ✅
-💎 Instant Delivery 🚀
-💯 Trusted 🔥
-
-📞 Contact: @{SUPPORT} 💬
-💖 Fast Service 💫
-━━━━━━━━━━━━━━━━━
-""")
+        await q.message.reply_text(f"❤️‍🔥✨ Free Fire Likes ✨❤️‍🔥\n🔥 UID bhejo 😍\n⚡ 100% Working ✅\n📞 @{SUPPORT} 💬")
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"""🆘✨ ZEVRIC SUPPORT ✨🆘
-━━━━━━━━━━━━━━━━━
-
-👨‍💻 Support: @{SUPPORT} 💬
-💜 UPI: {UPI_ID} 💳
-💛 USDT: {USDT_ADDR} 🔐
-
-⚡ 24/7 Online ✅
-🚀 Fast Reply 💯
-💖 Always Ready to Help 😎
-━━━━━━━━━━━━━━━━━
-""")
-
-async def support_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await help_cmd(update, context)
+    await update.message.reply_text(f"🆘 Support: @{SUPPORT} 💬\nUPI: {UPI_ID}\nUSDT: {USDT_ADDR}")
 
 async def main():
     while True:
         try:
             if not TOKEN:
-                print("❌ ERROR: TELEGRAM_TOKEN not set!")
+                print("❌ TOKEN missing!")
                 await asyncio.sleep(10)
                 continue
             app = Application.builder().token(TOKEN).build()
             app.add_handler(CommandHandler("start", start))
             app.add_handler(CommandHandler("help", help_cmd))
-            app.add_handler(CommandHandler("support", support_cmd))
+            app.add_handler(CommandHandler("support", help_cmd))
             app.add_handler(CallbackQueryHandler(btn_handler))
-            print("🔥 ZEVRIC EMOJI BOT starting... ✨")
+            print("🔥 EMOJI BOT - QR UPAR - LIVE... ✨")
             await app.initialize()
             await app.start()
             await app.updater.start_polling()
-            print("✅ Bot is Live 24/7 - /start working 🚀💯")
+            print("✅ Bot Live - Add Balance QR Upar ✅")
             await asyncio.Event().wait()
         except Exception as e:
-            print(f"❌ Bot crashed: {e} 🔄 Restarting in 5 sec...")
+            print(f"❌ Crash: {e}")
             await asyncio.sleep(5)
 
 if __name__=="__main__":
