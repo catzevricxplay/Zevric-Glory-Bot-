@@ -16,10 +16,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
         await update.message.reply_text("Unauthorized ❌")
         return
-    keyboard = [
-        [InlineKeyboardButton("📊 Status", callback_data="status"),
-         InlineKeyboardButton("❓ Help", callback_data="help")]
-    ]
+    keyboard = [[InlineKeyboardButton("📊 Status", callback_data="status")]]
     await update.message.reply_text(
         "ZEVRIC BOT ONLINE ✅\n/setclan <id> | /status | /start",
         reply_markup=InlineKeyboardMarkup(keyboard)
@@ -39,10 +36,7 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    if query.data == "status":
-        await query.message.reply_text("Bot running hai ✅")
-    elif query.data == "help":
-        await query.message.reply_text("Use: /setclan <id> and /status")
+    await query.message.reply_text("Bot running hai ✅")
 
 async def main():
     if not TELEGRAM_TOKEN:
@@ -58,7 +52,9 @@ async def main():
     await app.initialize()
     await app.start()
     await app.updater.start_polling()
-    await app.updater.idle()
+    print("Bot started - polling...")
+    # bot ko zinda rakhne ke liye
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
     asyncio.run(main())
