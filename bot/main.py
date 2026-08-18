@@ -1,6 +1,6 @@
 import os, asyncio, json, logging, threading, time
 from flask import Flask
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -9,13 +9,13 @@ UPI_ID = "zervicxplay@okhdfcbank"
 USDT_ADDR = "TLwAWcJ7Tm34jqyYqV6qhizQHy8pe7US1v"
 ADMIN_IDS = os.getenv("ADMIN_IDS", "")
 CREDIT_PRICE_INR = 95
-USDT_RATE = 95.78  # 1 USDT = 95.78 INR
+USDT_RATE = 95.78
 
 logging.basicConfig(level=logging.INFO)
 flask_app = Flask(__name__)
 @flask_app.route('/')
 def home():
-    return "🔥 ZEVRIC - 1 CREDIT 95RS - 6 PACKAGES - LIVE ✅"
+    return "🔥 ZEVRIC - BLUE AUTO START - NO GREY KEYBOARD ✅"
 def run_flask():
     port = int(os.getenv('PORT', 10000))
     flask_app.run(host='0.0.0.0', port=port)
@@ -55,13 +55,6 @@ def find_qr(name):
             return p
     return None
 
-def get_reply_keyboard():
-    return ReplyKeyboardMarkup(
-        [[KeyboardButton("🚀 START"), KeyboardButton("💳 ADD BALANCE")],
-         [KeyboardButton("🤖 BUY CREDITS"), KeyboardButton("🆘 SUPPORT")]],
-        resize_keyboard=True, is_persistent=True
-    )
-
 def calc_usdt(inr):
     return round(inr / USDT_RATE, 2)
 
@@ -79,9 +72,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_user(uid)
     me = await context.bot.get_me()
     ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
-    try:
-        await update.message.reply_text("👋 Tap START 👇", reply_markup=get_reply_keyboard())
-    except: pass
     text = f"""✨ ━━━━━━━━━━━━━━━━ ✨
   🎮 𝐙𝐄𝐕𝐑𝐈𝐂 𝐆𝐔𝐈𝐋𝐃 𝐆𝐋𝐎𝐑𝐘 𝐁𝐎𝐓 🎮
 ✨ ━━━━━━━━━━━━━━━━ ✨
@@ -124,8 +114,6 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name = q.from_user.first_name
     users = load_users()
     user = get_user(uid)
-    me = await context.bot.get_me()
-    ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
 
     if q.data=="add_balance":
         text = f"""💳 𝐙𝐄𝐕𝐑𝐈𝐂 𝐏𝐀𝐘𝐌𝐄𝐍𝐓 💳
@@ -142,7 +130,6 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(text, reply_markup=InlineKeyboardMarkup(kb))
 
     elif q.data=="buy_credits" or q.data=="credit_plans":
-        # 1 credit = 95 INR packages 1-6
         bal = user['balance']
         text = f"""🎫 𝐁𝐮𝐲 𝐂𝐫𝐞𝐝𝐢𝐭𝐬 🎫
 ━━━━━━━━━━━━━━━━━
@@ -150,7 +137,6 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 💎 Default: 1 Credit = ₹{CREDIT_PRICE_INR} 🪙
 💱 1 USDT ≈ ₹{USDT_RATE} 💹
 
-━━━━━━━━━━━━━━━━━
 📦 Select a credit package: 👇
 ━━━━━━━━━━━━━━━━━
 """
@@ -158,7 +144,6 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for i in range(1,7):
             inr_price = i * CREDIT_PRICE_INR
             usdt_price = calc_usdt(inr_price)
-            # Show INR + USDT
             kb.append([InlineKeyboardButton(f"{i} Credits — ₹{inr_price} (~{usdt_price} USDT)", callback_data=f"pkg_{i}")])
         kb.append([InlineKeyboardButton("💳 Add Balance 💰", callback_data="add_balance"),
                    InlineKeyboardButton("🔙 Back 🏠", callback_data="back_home")])
@@ -175,7 +160,7 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 users[str(uid)]['balance'] -= inr_price
                 users[str(uid)]['credits'] = users[str(uid)].get('credits',0) + pkg
                 save_users(users)
-                await q.message.reply_text(f"✅ Purchased {pkg} Credits! 🎫\n💰 Deducted: ₹{inr_price}\n🪙 Total Credits: {users[str(uid)]['credits']}\n🏆 Glory Bot ke liye @{SUPPORT} 💬")
+                await q.message.reply_text(f"✅ Purchased {pkg} Credits! 🎫\n💰 Deducted: ₹{inr_price}\n🪙 Total Credits: {users[str(uid)]['credits']}\n🏆 @{SUPPORT} 💬")
             else:
                 need = inr_price - user['balance']
                 text = f"""❌ Insufficient Balance 😥
@@ -184,7 +169,6 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 💰 Price: ₹{inr_price} (~{usdt_price} USDT)
 💵 Your Balance: ₹{user['balance']:.2f}
 💸 Need: ₹{need:.2f} more
-
 👇 Add Balance karo 👇
 """
                 kb = [[InlineKeyboardButton(f"💜 Pay ₹{inr_price} UPI 💳", callback_data="pay_upi"),
@@ -261,23 +245,21 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             users[str(uid)]["awaiting_screenshot"] = None
             users[str(uid)]["awaiting_utr"] = False
             save_users(users)
-        await q.message.reply_text("❌ Payment Cancelled\n🚀 START tap karo", reply_markup=get_reply_keyboard())
+        await q.message.reply_text("❌ Payment Cancelled\n/start se restart karo 🏠")
 
     elif q.data.startswith("approve_"):
         pid = q.data.replace("approve_","")
         pending = load_pending()
         if pid in pending:
             user_id = pending[pid]["user_id"]
-            method = pending[pid]["method"]
             amount = pending[pid].get("amount",95)
             users = load_users()
             if str(user_id) in users:
-                # Add balance based on amount submitted
                 users[str(user_id)]["balance"] += float(amount)
                 save_users(users)
             pending[pid]["status"]="approved"
             save_pending(pending)
-            await q.message.reply_text(f"✅ Approved {pid} +₹{amount} | {method}")
+            await q.message.reply_text(f"✅ Approved {pid} +₹{amount}")
             try:
                 await context.bot.send_message(user_id, f"✅ Payment Approved! ₹{amount} Added 💰\n🎫 Buy Credits ab kar sakte ho 🏆")
             except: pass
@@ -295,6 +277,8 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif q.data=="back_home":
         await start(q, context)
     elif q.data=="refs":
+        me = await context.bot.get_me()
+        ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
         await q.message.reply_text(f"👥 Refs: {user['referrals']} | ₹{user['referrals']*0.1:.2f}\n🔗 {ref_link}")
     elif q.data=="stats":
         await q.message.reply_text(f"📊 {name} | Balance: ₹{user['balance']:.2f} | Credits: {user.get('credits',0)}")
@@ -313,65 +297,43 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pending[pid] = {"user_id": uid, "username": update.effective_user.username, "name": update.effective_user.first_name, "method": awaiting, "file_id": file_id, "amount": amt, "status": "pending", "time": int(time.time())}
         save_pending(pending)
         users[str(uid)]["awaiting_screenshot"] = None
-        # keep awaiting_utr True for UTR input
         save_users(users)
-        await update.message.reply_text(f"✅ Payment Screenshot Received! 🧾\n💰 Method: {awaiting}\n💵 Amount: ₹{amt}\n\n📲 Ab UTR / Transaction ID bhejo 👇\n(12 digit number)", reply_markup=get_reply_keyboard())
+        await update.message.reply_text(f"✅ Payment Screenshot Received! 🧾\n💰 Method: {awaiting}\n💵 Amount: ₹{amt}\n\n📲 Ab UTR / Transaction ID bhejo 👇")
         for admin_id in get_admins():
             try:
                 kb = [[InlineKeyboardButton(f"✅ Approve +₹{amt}", callback_data=f"approve_{pid}"),
                        InlineKeyboardButton(f"❌ Cancel", callback_data=f"cancel_{pid}")]]
-                await context.bot.send_photo(admin_id, photo=file_id, caption=f"🚨 New Payment - {awaiting}\n👤 {update.effective_user.first_name} @{update.effective_user.username}\n🆔 {uid}\n💰 ₹{amt} (~{calc_usdt(amt)} USDT)\n📦 {sel} Credits if selected\nPID: {pid}", reply_markup=InlineKeyboardMarkup(kb))
+                await context.bot.send_photo(admin_id, photo=file_id, caption=f"🚨 New Payment - {awaiting}\n👤 {update.effective_user.first_name} @{update.effective_user.username}\n🆔 {uid}\n💰 ₹{amt} (~{calc_usdt(amt)} USDT)\nPID: {pid}", reply_markup=InlineKeyboardMarkup(kb))
             except: pass
     else:
-        await update.message.reply_text("📸 Pehle UPI/USDT select karo! 🚀 START", reply_markup=get_reply_keyboard())
+        await update.message.reply_text("📸 Pehle UPI/USDT select karo! /start")
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     text = update.message.text.strip()
     users = load_users()
-    # Check if awaiting UTR after screenshot
     if users.get(str(uid),{}).get('awaiting_utr'):
-        # User sent UTR/Transaction ID
         utr = ''.join(filter(str.isalnum, text))
         if len(utr) >= 8:
-            await update.message.reply_text(f"✅ Payment Submitted!\n\nAmount: ₹{users.get(str(uid),{}).get('selected_package',1)*CREDIT_PRICE_INR if users.get(str(uid),{}).get('selected_package') else '95'}\nUTR: {utr}\n\n⏳ Awaiting admin verification. You'll be notified once approved.", reply_markup=get_reply_keyboard())
+            await update.message.reply_text(f"✅ Payment Submitted!\n\nAmount: ₹{users.get(str(uid),{}).get('selected_package',1)*CREDIT_PRICE_INR if users.get(str(uid),{}).get('selected_package') else '95'}\nUTR: {utr}\n\n⏳ Awaiting admin verification. You'll be notified once approved.")
             users[str(uid)]['awaiting_utr'] = False
             users[str(uid)]['last_utr'] = utr
             save_users(users)
-            # Alert admin with UTR
             for admin_id in get_admins():
                 try:
-                    await context.bot.send_message(admin_id, f"📲 UTR Received\n👤 {update.effective_user.first_name} @{update.effective_user.username}\n🆔 {uid}\n💰 UTR: {utr}")
+                    await context.bot.send_message(admin_id, f"📲 UTR Received\n👤 {update.effective_user.first_name} @{update.effective_user.username}\n🆔 {uid}\nUTR: {utr}")
                 except: pass
             return
         else:
-            await update.message.reply_text("❌ Valid UTR / Transaction ID bhejo (12 digit) 👇")
+            await update.message.reply_text("❌ Valid UTR bhejo 👇")
             return
-
-    if text in ["🚀 START", "START", "/start", "Start", "start", "🚀 Start"]:
-        await start(update, context)
-        return
-    if text in ["💳 ADD BALANCE", "ADD BALANCE", "💳 Add Balance"]:
-        q_text = f"""💳 𝐙𝐄𝐕𝐑𝐈𝐂 𝐏𝐀𝐘𝐌𝐄𝐍𝐓\n💜 UPI | 💛 USDT"""
-        kb = [[InlineKeyboardButton("💜 UPI 💳", callback_data="pay_upi"),
-               InlineKeyboardButton("💛 USDT 🌐", callback_data="pay_usdt")],
-              [InlineKeyboardButton("🎫 Buy Credits 🏆", callback_data="buy_credits")]]
-        await update.message.reply_text(q_text, reply_markup=InlineKeyboardMarkup(kb))
-        return
-    if text in ["🤖 BUY CREDITS", "BUY CREDITS", "🤖 Glory Bot"]:
-        await update.message.reply_text("🎫 Buy Credits:", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📋 View Packages", callback_data="buy_credits")]]))
-        return
-    if text in ["🆘 SUPPORT", "SUPPORT"]:
-        await update.message.reply_text(f"🆘 Support: @{SUPPORT}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🆘 Support", url=f"https://t.me/{SUPPORT}")]]))
-        return
-
     if users.get(str(uid), {}).get("awaiting_screenshot"):
-        await update.message.reply_text("📸 Photo bhejo! UTR baad me 👆", reply_markup=get_reply_keyboard())
+        await update.message.reply_text("📸 Photo bhejo! UTR baad me 👆")
     else:
-        await update.message.reply_text("👋 🚀 START dabao 👇", reply_markup=get_reply_keyboard())
+        await update.message.reply_text("👋 /start dabao 🏠")
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"🆘 @{SUPPORT}", reply_markup=get_reply_keyboard())
+    await update.message.reply_text(f"🆘 @{SUPPORT}")
 
 async def main():
     while True:
@@ -389,7 +351,7 @@ async def main():
             await app.initialize()
             await app.start()
             await app.updater.start_polling()
-            print("✅ BOT LIVE - 1 CREDIT 95RS - 1-6 PACKAGES - INR+USDT")
+            print("✅ BOT LIVE - BLUE AUTO START - NO GREY KEYBOARD")
             await asyncio.Event().wait()
         except Exception as e:
             print(e)
