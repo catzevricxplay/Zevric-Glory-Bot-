@@ -1,7 +1,7 @@
 import os, asyncio, json, logging, threading
 from flask import Flask
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 SUPPORT = "just_zevric"
@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 flask_app = Flask(__name__)
 @flask_app.route('/')
 def home():
-    return "✨ ZEVRIC BOT LIVE 24/7 🔥✅"
+    return "🔥 ZEVRIC GLORY BOT - FULL MAST EMOJI LIVE 24/7 ✅"
 def run_flask():
     port = int(os.getenv('PORT', 10000))
     flask_app.run(host='0.0.0.0', port=port)
@@ -27,12 +27,12 @@ def save_users(d):
 def get_user(uid):
     users = load_users()
     if str(uid) not in users:
-        users[str(uid)] = {"balance":0.0,"referrals":0,"ref_code":str(uid)[-6:]}
+        users[str(uid)] = {"balance":0.0,"referrals":0,"ref_code":str(uid)[-6:],"awaiting_uid":False}
         save_users(users)
     return users[str(uid)]
 
 def find_qr(name):
-    for p in [f"bot/{name}.png", f"{name}.png", f"bot/{name}.jpg", f"{name}.jpg", f"bot/{name}.jpeg"]:
+    for p in [f"bot/{name}.png", f"{name}.png", f"bot/{name}.jpg", f"{name}.jpg"]:
         if os.path.exists(p):
             return p
     return None
@@ -83,6 +83,7 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await q.answer()
     uid = q.from_user.id
     name = q.from_user.first_name
+    users = load_users()
     user = get_user(uid)
     me = await context.bot.get_me()
     ref_link = f"https://t.me/{me.username}?start={user['ref_code']}"
@@ -91,54 +92,150 @@ async def btn_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             upi_path = find_qr("upi_qr")
             usdt_path = find_qr("usdt_qr")
-            
-            # QR UPERR - pehle QR bhejo, niche nahi!
+            # QR UPAR - ZERVIC MAST
             if upi_path:
                 try:
-                    await context.bot.send_photo(q.message.chat_id, photo=open(upi_path,"rb"), caption=f"💜 UPI Payment 💜\n🆔 {UPI_ID} 💳\n😍 Scan karo 💸")
-                except Exception as e:
-                    print(f"UPI error: {e}")
+                    await context.bot.send_photo(q.message.chat_id, photo=open(upi_path,"rb"), caption=f"💜✨ ZEVRIC UPI QR ✨💜\n🆔 ID: {UPI_ID} 💳\n😍 Upar Scan Karo 💸🚀")
+                except: pass
             if usdt_path:
                 try:
-                    await context.bot.send_photo(q.message.chat_id, photo=open(usdt_path,"rb"), caption=f"💛 USDT TRON 💛\n🔐 {USDT_ADDR} 🌐\n⚡ TRC20 Only")
-                except Exception as e:
-                    print(f"USDT error: {e}")
-            
-            # Fir payment details - QR ka "niche hai" line hata diya
+                    await context.bot.send_photo(q.message.chat_id, photo=open(usdt_path,"rb"), caption=f"💛✨ ZEVRIC USDT QR ✨💛\n🔐 Addr: {USDT_ADDR} 🌐\n⚡ TRON Only 💫")
+                except: pass
+            # TEXT NICHE - FULL MAST, HATAYA NAHI
             caption = f"""💳✨ ZEVRIC PAYMENT ✨💳
 ━━━━━━━━━━━━━━━━━
 
-💜 UPI Payment 💜
+💜💖 UPI Payment 💖💜
 🆔 ID: {UPI_ID} 💳
+📸 Upar QR Scan karo 😍💸
+💫 Instant Payment ⚡
 
-💛 USDT TRON (TRC20) 💛
-🔐 Address: {USDT_ADDR}
+💛💖 USDT TRON (TRC20) 💖💛
+🔐 Address: {USDT_ADDR} 🔐
 🌐 Network: TRON only ⚡
+📸 Upar QR Scan karo 👆💫
 
-📤 Payment karke screenshot 📸
-👉 @{SUPPORT} pe bhejo 📩
+📤💌 Payment karke screenshot 📸
+👉 @{SUPPORT} pe bhejo 📩💬
 
 ⚡ 24/7 Auto Check ✅
-🚀 Fast Approval 💯
+🚀 Fast Approval 💯🔥
+💖 ZEVRIC FAMILY 💫
 ━━━━━━━━━━━━━━━━━
 """
             await q.message.reply_text(caption)
-                
         except Exception as e:
-            print(f"Add Balance error: {e}")
-            await q.message.reply_text(f"💳 Payment\nUPI: {UPI_ID}\nUSDT: {USDT_ADDR}\nSupport: @{SUPPORT}")
+            await q.message.reply_text(f"💳 ZEVRIC PAYMENT\nUPI: {UPI_ID}\nUSDT: {USDT_ADDR}\n@{SUPPORT}")
 
     elif q.data=="buy":
-        await q.message.reply_text(f"🛒✨ Buy Credits ✨🛒\n📞 @{SUPPORT} 💬\n⚡ Fast Delivery 🚀")
+        await q.message.reply_text(f"""🛒✨ ZEVRIC BUY CREDITS ✨🛒
+━━━━━━━━━━━━━━━━━
+
+💎✨ Credits kharidne ke liye 👇
+📞 Support pe aao: @{SUPPORT} 💬
+👨‍💻 24/7 Available ✅
+
+⚡ Fast Delivery 🚀💨
+💯 Trusted 100% 🔥💖
+💸 Secure Payment 💳💫
+🎮 Instant Credits 🎯
+
+💖 ZEVRIC GLORY STORE 💫
+━━━━━━━━━━━━━━━━━
+""")
     elif q.data=="refs":
-        await q.message.reply_text(f"👥✨ Referrals ✨👥\n🙋 Total: {user['referrals']}\n💰 Earning: ₹{user['referrals']*0.1:.2f}\n🔗 {ref_link}")
+        await q.message.reply_text(f"""👥✨ ZEVRIC REFERRALS ✨👥
+━━━━━━━━━━━━━━━━━
+
+🙋 Total Referrals: {user['referrals']} 👥💖
+💰 Earning: ₹{user['referrals']*0.1:.2f} 💵💸
+💸 Per Refer: ₹0.10 🤑💰
+
+🔗 Your Referral Link 👇
+{ref_link}
+
+📢 Dosto ko share karo! 🚀💫
+💸 Aur kamao! 🤑💵
+🔥 ZEVRIC FAMILY 💖
+━━━━━━━━━━━━━━━━━
+""")
     elif q.data=="stats":
-        await q.message.reply_text(f"📊✨ Stats ✨📊\n👤 {name} 😎\n💰 ₹{user['balance']:.2f}\n👥 {user['referrals']} 🙋\n💸 ₹{user['referrals']*0.1:.2f}")
+        await q.message.reply_text(f"""📊✨ ZEVRIC STATS ✨📊
+━━━━━━━━━━━━━━━━━
+
+👤 Name: {name} 😎💫
+💰 Balance: ₹{user['balance']:.2f} 💵💸
+👥 Referrals: {user['referrals']} 🙋👥
+💸 Earned: ₹{user['referrals']*0.1:.2f} 💰🤑
+🔗 Code: {user['ref_code']} 🎫✨
+
+🔥 Keep Growing! 🚀💫
+💖 ZEVRIC GLORY STORE 💖
+✨━━━━━━━━━━━━━━━━━✨
+""")
     elif q.data=="likes":
-        await q.message.reply_text(f"❤️‍🔥✨ Free Fire Likes ✨❤️‍🔥\n🔥 UID bhejo 😍\n⚡ 100% Working ✅\n📞 @{SUPPORT} 💬")
+        users = load_users()
+        users[str(uid)]["awaiting_uid"] = True
+        save_users(users)
+        await q.message.reply_text(f"""❤️‍🔥✨ ZEVRIC FREE FIRE LIKES ✨❤️‍🔥
+━━━━━━━━━━━━━━━━━
+
+🔥 UID bhejo aur likes pao! 😍💖
+⚡ 100% Working ✅💯
+💎 Instant Delivery 🚀💨
+💯 Trusted 🔥💫
+🎮 Free Fire Special 🎯
+
+👇 Apna Free Fire UID bhejo 👇
+📝 Example: 123456789 💌
+
+📞 Contact: @{SUPPORT} 💬
+💖 Fast Service 💫⚡
+━━━━━━━━━━━━━━━━━
+""")
+
+async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    users = load_users()
+    if users.get(str(uid), {}).get("awaiting_uid"):
+        ff_uid = ''.join(filter(str.isdigit, update.message.text))
+        if len(ff_uid) < 6:
+            await update.message.reply_text("❌ Invalid UID! 😥\n📝 Example: 123456789")
+            return
+        await update.message.reply_text(f"⏳ ZEVRIC Processing... 🔥\n👤 UID: {ff_uid} 😎\n⚡ Please wait... 🚀💫")
+        await asyncio.sleep(1)
+        await update.message.reply_text(f"""✅✨ ZEVRIC LIKES SENT! ✨✅
+━━━━━━━━━━━━━━━━━
+👤 UID: {ff_uid} 😎💫
+💖 Likes: 100+ ❤️‍🔥🔥
+⚡ Status: Success ✅💯
+🚀 By: ZEVRIC GLORY STORE 💫
+
+🔥 Keep Gaming! 🎮💖
+📞 Support: @{SUPPORT} 💬
+━━━━━━━━━━━━━━━━━
+""")
+        users[str(uid)]["awaiting_uid"] = False
+        save_users(users)
+    else:
+        await update.message.reply_text(f"👋 Hey {update.effective_user.first_name}! 😎💫\n/start dabao 🚀✨")
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"🆘 Support: @{SUPPORT} 💬\nUPI: {UPI_ID}\nUSDT: {USDT_ADDR}")
+    await update.message.reply_text(f"""🆘✨ ZEVRIC SUPPORT ✨🆘
+━━━━━━━━━━━━━━━━━
+
+👨‍💻 Support: @{SUPPORT} 💬💖
+💜 UPI: {UPI_ID} 💳✨
+💛 USDT: {USDT_ADDR} 🔐🌐
+
+⚡ 24/7 Online ✅💯
+🚀 Fast Reply 💯🔥
+💖 Always Ready to Help 😎💫
+🎯 ZEVRIC FAMILY 💖
+
+📞 Contact karo: @{SUPPORT} 💬
+━━━━━━━━━━━━━━━━━
+""")
 
 async def main():
     while True:
@@ -152,11 +249,12 @@ async def main():
             app.add_handler(CommandHandler("help", help_cmd))
             app.add_handler(CommandHandler("support", help_cmd))
             app.add_handler(CallbackQueryHandler(btn_handler))
-            print("🔥 EMOJI BOT - QR UPAR - LIVE... ✨")
+            app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+            print("🔥 ZEVRIC FULL MAST EMOJI BOT LIVE ✨")
             await app.initialize()
             await app.start()
             await app.updater.start_polling()
-            print("✅ Bot Live - Add Balance QR Upar ✅")
+            print("✅ ZEVRIC BOT LIVE - FULL MAST ALL COMMANDS ✅")
             await asyncio.Event().wait()
         except Exception as e:
             print(f"❌ Crash: {e}")
